@@ -30,7 +30,6 @@ import (
 // \____   )MMMMMP|   .'
 //      `-'       `--'
 
-
 type Client struct {
 	conn net.Conn
 	name string
@@ -47,16 +46,14 @@ func main() {
 
 func handleConnection(conn net.Conn) {
 	defer conn.Close()
-
-	reader := bufio.NewReader(conn)
 	firstTime := false
 	name := ""
+	reader := bufio.NewReader(conn)
 	for {
 		if !firstTime {
 			conn.Write([]byte("Welcome to TCP-Chat!" + "\n"))
-			conn.Write([]byte("[ENTER YOUR NAME]: " + "\n"))
+			name := NamesValdation(conn)
 
-			name, _ = reader.ReadString('\n')
 			if len(HistoryMessage) != 0 {
 				for _, message := range HistoryMessage {
 					conn.Write([]byte(message + "\n"))
@@ -140,4 +137,17 @@ func PrintMessage(conn net.Conn, message string) {
 			}
 		}
 	}
+}
+
+func NamesValdation(conn net.Conn) string {
+	conn.Write([]byte("[ENTER YOUR NAME]: " + "\n"))
+	reader := bufio.NewReader(conn)
+	name, _ := reader.ReadString('\n')
+	for _, ClientName := range clients {
+		if ClientName.name == name[:len(name)-1] {
+			conn.Write([]byte("!!! THIS NAME ALREADY EXIST , CHOSE ANOTHER NAME !!!" + "\n"))
+			name = NamesValdation(conn)
+		}
+	}
+	return name[:len(name)-1]
 }
