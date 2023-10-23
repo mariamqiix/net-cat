@@ -52,7 +52,8 @@ func handleConnection(conn net.Conn) {
 	for {
 		if !firstTime {
 			conn.Write([]byte("Welcome to TCP-Chat!" + "\n"))
-			name := NamesValdation(conn)
+			conn.Write([]byte("[ENTER YOUR NAME]: " + "\n"))
+			name, _ = reader.ReadString('\n')
 
 			if len(HistoryMessage) != 0 {
 				for _, message := range HistoryMessage {
