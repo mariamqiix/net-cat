@@ -6,6 +6,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"sync"
 	"time"
 )
 
@@ -14,14 +15,16 @@ type Client struct {
 	name string
 }
 
-var HistoryMessage []string
-var clients []Client
-var ClientsNames []string
+var (
+	HistoryMessage []string
+	clients        []Client
+	ClientsNames   []string
+	mutex          sync.Mutex
+)
 
 func main() {
 	Port := "8989"
 
-	//should we check if the user use port number less than 4 digit or use charcters or letters?
 	if len(os.Args) == 2 {
 		Port = os.Args[1]
 	} else if len(os.Args) != 1 {
@@ -54,7 +57,10 @@ func main() {
 			continue
 		}
 
+		mutex.Lock()
 		clients = append(clients, client)
+		mutex.Unlock()
+
 		go handleConnection(conn)
 	}
 }
@@ -90,16 +96,12 @@ func handleConnection(conn net.Conn) {
 			for _, line := range WlcLogo {
 				conn.Write([]byte(line + "\n"))
 			}
-			conn.Write([]byte("[ENTER YOUR NAME]: " + "\n"))
 
-			name, _ = reader.ReadString('\n')
+			name = NameExistence(conn)
 
-			for !NameExitene(name) {
-				conn.Write([]byte("[!!! THIS NAME ALREADY EXIST, CHOSE ANOTHER NAME !!!]: " + "\n"))
-				name, _ = reader.ReadString('\n')
-			}
-
+			mutex.Lock()
 			ClientsNames = append(ClientsNames, name)
+			mutex.Unlock()
 
 			if name == "" {
 				Exit(conn)
@@ -111,8 +113,7 @@ func handleConnection(conn net.Conn) {
 					conn.Write([]byte(message + "\n"))
 				}
 			}
-
-			PrintMessage(conn, name[:len(name)-1]+" has joined our chat...")
+			PrintMessage(conn, fmt.Sprint("\u001b[31m", name)+fmt.Sprint("\u001b[0m", " has joined our chat..."))
 
 			firstTime = true
 		}
@@ -120,7 +121,7 @@ func handleConnection(conn net.Conn) {
 		message, err := reader.ReadString('\n')
 
 		if err != nil {
-			PrintMessage(conn, name[:len(name)-1]+" has left our chat...")
+			PrintMessage(conn, fmt.Sprint("\u001b[31m", name)+fmt.Sprint("\u001b[0m", " has left our chat..."))
 			Exit(conn)
 			return
 		}
@@ -128,8 +129,10 @@ func handleConnection(conn net.Conn) {
 		if len(message[:len(message)-1]) != 0 {
 			currentTime := time.Now()
 
-			messageB := "[" + currentTime.Format("2006-01-02 15:04:05") + "][" + name[:len(name)-1] + "]:" + message[:len(message)-1]
+			messageB := fmt.Sprint("\u001b[0m", "["+currentTime.Format("2006-01-02 15:04:05")+"]["+name+"]:"+message[:len(message)-1])
+			mutex.Lock()
 			HistoryMessage = append(HistoryMessage, messageB)
+			mutex.Unlock()
 
 			PrintMessage(conn, messageB)
 		}
@@ -137,6 +140,9 @@ func handleConnection(conn net.Conn) {
 }
 
 func PrintMessage(conn net.Conn, message string) {
+	mutex.Lock()
+	defer mutex.Unlock()
+
 	for _, otherClient := range clients {
 		if otherClient.conn != conn {
 			_, err := otherClient.conn.Write([]byte(message + "\n"))
@@ -147,16 +153,29 @@ func PrintMessage(conn net.Conn, message string) {
 	}
 }
 
-func NameExitene(name string) bool {
+func NameExistence(conn net.Conn) string {
+	conn.Write([]byte("[ENTER YOUR NAME]: " + "\n"))
+	reader := bufio.NewReader(conn)
+	name, _ := reader.ReadString('\n')
+	if name != "" {
+		name = name[:len(name)-1]
+	}
+	mutex.Lock()
 	for _, Clientname := range ClientsNames {
 		if Clientname == name {
-			return false
+			conn.Write([]byte(fmt.Sprint("\u001b[31m", "[!!! THIS NAME ALREADY EXISTS, CHOOSE ANOTHER NAME !!!]: "+fmt.Sprint("\u001b[0m", "\n"))))
+			mutex.Unlock()
+			return NameExistence(conn)
 		}
 	}
-	return true
+	mutex.Unlock()
+	return name
 }
 
 func Exit(conn net.Conn) {
+	mutex.Lock()
+	defer mutex.Unlock()
+
 	// Remove the client from the list of clients
 	for i, c := range clients {
 		if c.conn == conn {
