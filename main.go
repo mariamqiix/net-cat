@@ -129,7 +129,7 @@ func handleConnection(conn net.Conn) {
 		if len(message[:len(message)-1]) != 0 {
 			currentTime := time.Now()
 
-			messageB := fmt.Sprint("\u001b[0m", "["+currentTime.Format("2006-01-02 15:04:05")+"]["+name+"]:"+message[:len(message)-1])
+			messageB := fmt.Sprint("\u001b[0m", "["+currentTime.Format("2006-01-02 15:04:05")+"][") + fmt.Sprint("\u001b[31m",name)+ fmt.Sprint("\u001b[0m" , "]:" + message[:len(message)-1])
 			mutex.Lock()
 			HistoryMessage = append(HistoryMessage, messageB)
 			mutex.Unlock()
