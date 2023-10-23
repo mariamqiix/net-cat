@@ -10,6 +10,10 @@ import (
 	"time"
 )
 
+//It is recommended to have test files for unit testing both the server connection and the client.
+//You have to be able to handle the errors from server side and client side
+//Does the project use channels or mutexes?
+
 type Client struct {
 	conn net.Conn
 	name string
@@ -89,6 +93,7 @@ func handleConnection(conn net.Conn) {
 	reader := bufio.NewReader(conn)
 	firstTime := false
 	name := ""
+	Index := 0
 
 	for {
 		if !firstTime {
@@ -101,9 +106,11 @@ func handleConnection(conn net.Conn) {
 
 			mutex.Lock()
 			ClientsNames = append(ClientsNames, name)
+			Index = len(ClientsNames) - 1
 			mutex.Unlock()
 
 			if name == "" {
+				conn.Write([]byte("Not a vaild name" + "\n")) //Control C problem --- user exit any way
 				Exit(conn)
 				return
 			}
@@ -120,16 +127,19 @@ func handleConnection(conn net.Conn) {
 
 		message, err := reader.ReadString('\n')
 
-		if err != nil {
+		if err != nil || message[:len(message)-1] == "exit" {
 			PrintMessage(conn, fmt.Sprint("\u001b[31m", name)+fmt.Sprint("\u001b[0m", " has left our chat..."))
 			Exit(conn)
 			return
-		}
-
-		if len(message[:len(message)-1]) != 0 {
+		} else if message[:len(message)-1] == "--ChangeName" {
+			PrivesName := name
+			name = NameExistence(conn)
+			ClientsNames[Index] = name
+			PrintMessage(conn, fmt.Sprint("\u001b[31m", PrivesName)+fmt.Sprint("\u001b[0m", " change has name to "+fmt.Sprint("\u001b[31m", name)))
+		} else if len(message[:len(message)-1]) != 0 {
 			currentTime := time.Now()
 
-			messageB := fmt.Sprint("\u001b[0m", "["+currentTime.Format("2006-01-02 15:04:05")+"][") + fmt.Sprint("\u001b[31m",name)+ fmt.Sprint("\u001b[0m" , "]:" + message[:len(message)-1])
+			messageB := fmt.Sprint("\u001b[0m", "["+currentTime.Format("2006-01-02 15:04:05")+"][") + fmt.Sprint("\u001b[31m", name) + fmt.Sprint("\u001b[0m", "]:"+message[:len(message)-1])
 			mutex.Lock()
 			HistoryMessage = append(HistoryMessage, messageB)
 			mutex.Unlock()
