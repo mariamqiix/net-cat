@@ -13,6 +13,10 @@ import (
 //It is recommended to have test files for unit testing both the server connection and the client.
 //You have to be able to handle the errors from server side and client side
 //Does the project use channels or mutexes?
+// +Does the server produce logs about Clients activities?
+// +Are the server logs saved into a file?
+// +Is there more NetCat flags implemented?
+// +Does the project present a Terminal UI using JUST this package : https://github.com/jroimartin/gocui?
 
 type Client struct {
 	conn net.Conn
