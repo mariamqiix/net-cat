@@ -47,6 +47,7 @@ func HandleConnection(conn net.Conn) {
 			firstTime = true
 		}
 
+		time.Sleep(time.Second)
 		message, err := reader.ReadString('\n')
 
 		if err != nil || message[:len(message)-1] == "exit" { //if user write exit, inform the thers and exit
