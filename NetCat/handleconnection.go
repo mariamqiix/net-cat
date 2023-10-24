@@ -30,12 +30,6 @@ func HandleConnection(conn net.Conn) {
 			Index = len(ClientsNames) - 1             //save the index of the client, so in case he wants to change his name
 			mutex.Unlock()
 
-			if name == "" { // we need to fix that
-				conn.Write([]byte("Not a vaild name" + "\n")) //Control C problem --- user exit any way
-				Exit(conn)
-				return
-			}
-
 			if len(HistoryMessage) != 0 { //if the history message is not empty print it to the new client
 				for _, message := range HistoryMessage {
 					conn.Write([]byte(message + "\n"))
