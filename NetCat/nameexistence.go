@@ -13,6 +13,7 @@ func NameExistence(conn net.Conn) string { //this is recursive function, it will
 
 	if err != nil {
 		Exit(conn)
+		return ""
 	}
 
 	if len(name) <= 1 {

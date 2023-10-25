@@ -25,6 +25,10 @@ func HandleConnection(conn net.Conn) {
 
 			name = NameExistence(conn) //check if the name exists or not
 
+			if name == "" {
+				return
+			}
+
 			mutex.Lock()
 			ClientsNames = append(ClientsNames, name) //append the client name
 			Index = len(ClientsNames) - 1             //save the index of the client, so in case he wants to change his name

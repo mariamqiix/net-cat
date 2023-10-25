@@ -9,7 +9,6 @@ import (
 	"strconv"
 )
 
-//Check if the we can use it from other PC -- should we use ip add insted of localhost? in handleconnection if name == ""
 //test files for unit testing both the server connection and the client
 
 func main() {
@@ -27,7 +26,9 @@ func main() {
 		return
 	}
 
-	listener, err := net.Listen("tcp", "localhost:"+Port) //lisen the connection
+	fmt.Println(NetCat.GetIpAdd())
+
+	listener, err := net.Listen("tcp", NetCat.GetIpAdd()+":"+Port) //lisen the connection
 	if err != nil {
 		log.Fatal("Error starting the server:", err)
 	}

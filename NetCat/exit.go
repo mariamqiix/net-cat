@@ -10,8 +10,12 @@ func Exit(conn net.Conn) {
 	for i, c := range clients {
 		if c.conn == conn {
 			clients = append(clients[:i], clients[i+1:]...)
-			ClientsNames = append(ClientsNames[:i], ClientsNames[i+1:]...)
+			if len(ClientsNames) > i {
+				ClientsNames = append(ClientsNames[:i], ClientsNames[i+1:]...)
+			}
 			break
 		}
 	}
+
+	return
 }
