@@ -86,7 +86,7 @@ func HandleConnection(conn net.Conn) {
 			name = NameExistence(conn)
 			ClientsNames[Index] = name
 			PrintMessage(conn, fmt.Sprint(colors[Index], PrivesName)+fmt.Sprint("\u001b[0m", " change has name to "+fmt.Sprint(colors[Index], name)))
-		} else if len(message[:len(message)-1]) != 0 && len(message[:len(message)-1]) < 500 && CheckLetters(message[:len(message)-1]) { //if message not empty send it through the chat
+		} else if len(message[:len(message)-1]) != 0 && len(message[:len(message)-1]) < 1000 && CheckLetters(message[:len(message)-1]) { //if message not empty send it through the chat
 			currentTime := time.Now()
 
 			messageB := fmt.Sprint("\u001b[0m", "["+currentTime.Format("2006-01-02 15:04:05")+"][") + fmt.Sprint(colors[Index], name) + fmt.Sprint("\u001b[0m", "]:"+message[:len(message)-1])
@@ -96,6 +96,10 @@ func HandleConnection(conn net.Conn) {
 
 			PrintMessage(conn, messageB)
 		}
+		if len(message[:len(message)-1]) > 1000 {
+			conn.Write([]byte(fmt.Sprint("\033[31m"+"Error Sending the Message: Your Message is Very long" + "\n")))
+		}
+
 	}
 }
 
