@@ -31,13 +31,16 @@ func NameExistence(conn net.Conn) string { //this is recursive function, it will
 	}
 
 	mutex.Lock()
-	for _, Clientname := range ClientsNames { //check if it exists by looping in ClientName array
+	if len(ClientsNames)!= 1 {
+		for _, Clientname := range ClientsNames { //check if it exists by looping in ClientName array
 		if Clientname == name[:len(name)-1] {
 			conn.Write([]byte(fmt.Sprint("\u001b[31m", "[!!! THIS NAME ALREADY EXISTS, CHOOSE ANOTHER NAME !!!]: "+fmt.Sprint("\u001b[0m", "\n"))))
 			mutex.Unlock()
 			return NameExistence(conn)
 		}
 	}
+	} 
+	
 	mutex.Unlock()
 
 	return strings.Join(strings.Fields(name[:len(name)-1]), " ")//if the loop end without re-calling the function return the name
