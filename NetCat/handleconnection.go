@@ -15,13 +15,18 @@ func HandleConnection(conn net.Conn) {
 	name := ""
 	Index := 0
 
-	messageLimit := 10               // Maximum number of messages allowed per second
-	perSecond := time.Second       // Time window duration (1 second)
+	messageLimit := 10       // Maximum number of messages allowed per second
+	perSecond := time.Second // Time window duration (1 second)
 
-	messageCounter := 0            // Counter to track the number of messages sent
-	previousSecond := time.Now()   // Variable to store the previous second
+	messageCounter := 0          // Counter to track the number of messages sent
+	previousSecond := time.Now() // Variable to store the previous second
 
 	for {
+		for i, name1 := range ClientsNames {
+			if name1 == name {
+				Index = i ////save the index of the client, so in case he wants to change his name
+			}
+		}
 		//at the beginning of each new connection, the user is asked to write his name. And print wlc message
 		if !firstTime {
 			conn.Write([]byte("Welcome to TCP-Chat!" + "\n"))
@@ -39,10 +44,9 @@ func HandleConnection(conn net.Conn) {
 
 			mutex.Lock()
 
-			clients = append(clients, client) //append the client to the client list so that he can receive new messages from the others
+			clients = append(clients, client)         //append the client to the client list so that he can receive new messages from the others
 			ClientsNames = append(ClientsNames, name) //append the client name
-			Index = len(ClientsNames) - 1             //save the index of the client, so in case he wants to change his name
-			
+
 			mutex.Unlock()
 
 			if len(HistoryMessage) != 0 { //if the history message is not empty print it to the new client
@@ -62,7 +66,7 @@ func HandleConnection(conn net.Conn) {
 
 		currentSecond := time.Now()
 		if currentSecond.Sub(previousSecond) >= perSecond {
-			messageCounter = 0        // Reset the message counter
+			messageCounter = 0 // Reset the message counter
 			previousSecond = currentSecond
 		}
 
@@ -71,7 +75,7 @@ func HandleConnection(conn net.Conn) {
 			PrintMessage(conn, fmt.Sprint(colors[Index], name)+fmt.Sprint("\u001b[0m", " has left our chat..."))
 			Exit(conn)
 			return
-			time.Sleep(time.Millisecond * 100)  // Sleep for a short duration before checking again
+			time.Sleep(time.Millisecond * 100) // Sleep for a short duration before checking again
 			continue
 		}
 
@@ -97,14 +101,14 @@ func HandleConnection(conn net.Conn) {
 			PrintMessage(conn, messageB)
 		}
 		if len(message[:len(message)-1]) > 1000 {
-			conn.Write([]byte(fmt.Sprint("\033[31m"+"Error Sending the Message: Your Message is Very long" + "\n")))
+			conn.Write([]byte(fmt.Sprint("\033[31m" + "Error Sending the Message: Your Message is Very long" + "\n")))
 		}
 
 	}
 }
 
 func CheckLetters(s string) bool {
-	for i:=0; i<len(s); i++ {
+	for i := 0; i < len(s); i++ {
 		if s[i] < 32 {
 			return false
 		}
