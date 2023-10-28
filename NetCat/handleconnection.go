@@ -44,8 +44,8 @@ func HandleConnection(conn net.Conn) {
 
 			mutex.Lock()
 
-			clients = append(clients, client)         //append the client to the client list so that he can receive new messages from the others
-			ClientsNames = append(ClientsNames, name) //append the client name
+			clients = append(clients, client)
+			ClientsNames = append(ClientsNames, name) 
 
 			mutex.Unlock()
 
@@ -81,12 +81,12 @@ func HandleConnection(conn net.Conn) {
 
 		messageCounter++
 
-		if err != nil || message[:len(message)-1] == "exit" || messageCounter > 10 { //if user write exit, inform the thers and exit
+		if err != nil || message[:len(message)-1] == "exit" || messageCounter > 10 { //If user write exit, inform the theres, and exit
 			PrintMessage(conn, fmt.Sprint(colors[Index], name)+fmt.Sprint("\u001b[0m", " has left our chat..."))
 			Exit(conn)
 			return
-		} else if message[:len(message)-1] == "--ChangeName" { //if user prifide this, change has name
-			PrivesName := name // again make sure that the name is not exists
+		} else if message[:len(message)-1] == "--ChangeName" { //If user enter this, change has name
+			PrivesName := name //Make sure that the name does not exists
 			name = NameExistence(conn)
 			ClientsNames[Index] = name
 			PrintMessage(conn, fmt.Sprint(colors[Index], PrivesName)+fmt.Sprint("\u001b[0m", " change has name to "+fmt.Sprint(colors[Index], name)))
@@ -95,7 +95,7 @@ func HandleConnection(conn net.Conn) {
 
 			messageB := fmt.Sprint("\u001b[0m", "["+currentTime.Format("2006-01-02 15:04:05")+"][") + fmt.Sprint(colors[Index], name) + fmt.Sprint("\u001b[0m", "]:"+message[:len(message)-1])
 			mutex.Lock()
-			HistoryMessage = append(HistoryMessage, messageB) //append the message to historymessages so if new client join we can show it to him
+			HistoryMessage = append(HistoryMessage, messageB) 
 			mutex.Unlock()
 
 			PrintMessage(conn, messageB)
